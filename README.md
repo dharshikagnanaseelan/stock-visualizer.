@@ -17,5 +17,7 @@ The Stock Visualizer is a tool designed to help users visualize and analyze stoc
 - `pandas` for data manipulation
 
 ## Setup
-  **Clone the repository**:
-  
+1. **Clone the repository**:
+   ```sh
+   git clone https://github.com/dharshikagnanaseelan/stock-visualizer.git
+   cd stock-visualizer
