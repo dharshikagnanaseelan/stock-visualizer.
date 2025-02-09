@@ -1,0 +1,69 @@
+import yfinance as yf
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+
+# Function to fetch the stock data
+def get_stock_data(symbol, start_date, end_date):
+    stock_data = yf.download(symbol, start=start_date, end=end_date)
+    return stock_data
+
+# Function to calculate moving averages
+def calculate_moving_averages(stock_data, short_window=40, long_window=100):
+    stock_data['Short_MA'] = stock_data['Close'].rolling(window=short_window, min_periods=1).mean()
+    stock_data['Long_MA'] = stock_data['Close'].rolling(window=long_window, min_periods=1).mean()
+
+# Function to generate buy and sell signals based on moving averages
+def generate_buy_sell_signals(stock_data):
+    stock_data['Signal'] = 0
+    stock_data['Signal'][short_window:] = np.where(stock_data['Short_MA'][short_window:] > stock_data['Long_MA'][short_window:], 1, 0)
+    stock_data['Position'] = stock_data['Signal'].diff()
+
+# Function to plot the stock data with moving averages and buy/sell signals
+def plot_stock(symbol, start_date, end_date):
+    stock_data = get_stock_data(symbol, start_date, end_date)
+    
+    # Calculate moving averages and buy/sell signals
+    short_window = 40
+    long_window = 100
+    calculate_moving_averages(stock_data, short_window, long_window)
+    generate_buy_sell_signals(stock_data)
+    
+    # Create the plot
+    plt.figure(figsize=(12,8))
+    
+    # Plot the closing price and moving averages
+    plt.plot(stock_data['Close'], label=f"{symbol} Close Price", color='blue', alpha=0.7)
+    plt.plot(stock_data['Short_MA'], label=f"Short {short_window}-day MA", color='red', alpha=0.7)
+    plt.plot(stock_data['Long_MA'], label=f"Long {long_window}-day MA", color='green', alpha=0.7)
+
+    # Plot buy signals
+    plt.plot(stock_data[stock_data['Position'] == 1].index, 
+             stock_data['Short_MA'][stock_data['Position'] == 1],
+             '^', markersize=10, color='g', lw=0, label='Buy Signal')
+
+    # Plot sell signals
+    plt.plot(stock_data[stock_data['Position'] == -1].index, 
+             stock_data['Short_MA'][stock_data['Position'] == -1],
+             'v', markersize=10, color='r', lw=0, label='Sell Signal')
+
+    # Title and labels
+    plt.title(f'{symbol} Stock Price with Moving Averages and Buy/Sell Signals')
+    plt.xlabel('Date')
+    plt.ylabel('Price (USD)')
+    plt.legend(loc='best')
+    plt.grid(True)
+    
+    # Show the plot
+    plt.show()
+
+def main():
+    # Get stock symbol, start date, and end date from user
+    symbol = input("Enter the stock symbol (e.g., AAPL for Apple, TSLA for Tesla): ").upper()
+    start_date = input("Enter the start date (YYYY-MM-DD): ")
+    end_date = input("Enter the end date (YYYY-MM-DD): ")
+
+    plot_stock(symbol, start_date, end_date)
+
+if __name__ == "__main__":
+    main()
